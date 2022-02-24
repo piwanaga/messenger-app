@@ -81,13 +81,13 @@ const Home = ({ user, logout }) => {
   const addNewConvo = useCallback((recipientId, message) => {
       setConversations(conversations.map((convo) => {
         if (convo.otherUser.id === recipientId) {
-          convo.messages.push(message);
+          convo.messages = [...convo.messages, message]
           convo.latestMessageText = message.text;
           convo.id = message.conversationId;
         }
         return convo
       }));
-     
+      
     },
     [setConversations, conversations]
   );
@@ -107,7 +107,7 @@ const Home = ({ user, logout }) => {
 
       setConversations(conversations.map((convo) => {
         if (convo.id === message.conversationId) {
-          convo.messages.push(message);
+          convo.messages = [...convo.messages, message];
           convo.latestMessageText = message.text;
         }
         return convo
@@ -116,6 +116,13 @@ const Home = ({ user, logout }) => {
     },
     [setConversations, conversations]
   );
+  
+  // Sort messages in each conversation from oldest to newest
+  const sortMessages = (conversations) => {
+    conversations.forEach((convo) => {
+      convo.messages.sort((a,b) => a.id - b.id)
+    })
+  }
 
   const setActiveChat = (username) => {
     setActiveConversation(username);
@@ -183,11 +190,11 @@ const Home = ({ user, logout }) => {
     const fetchConversations = async () => {
       try {
         const { data } = await axios.get('/api/conversations');
+        sortMessages(data);
         setConversations(data);
-       
       } catch (error) {
         console.error(error);
-      }
+      } 
     };
     if (!user.isFetching) {
       fetchConversations();
