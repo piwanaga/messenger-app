@@ -37,6 +37,9 @@ const ActiveChat = ({
     return obj !== {} && obj !== undefined;
   };
 
+  // If conversation found, sort messages from oldest to newest (top to bottom)
+  if (conversation) conversation.messages.sort((a,b) => a.id - b.id)
+
   return (
     <Box className={classes.root}>
       {isConversation(conversation) && conversation.otherUser && (
