@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Badge, Avatar } from "@material-ui/core";
+import { Box, Badge, Avatar, FormHelperText } from "@material-ui/core";
 
 import { makeStyles } from "@material-ui/core/styles";
 
@@ -20,7 +20,7 @@ const useStyles = makeStyles(() => ({
   },
   sidebar: {
     marginLeft: 17,
-  },
+  }
 }));
 
 const UserAvatar = ({ sidebar, username, photoUrl, online }) => {

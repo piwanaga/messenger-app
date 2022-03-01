@@ -23,7 +23,7 @@ const ActiveChat = ({
   user,
   conversations,
   activeConversation,
-  postMessage,
+  postMessage
 }) => {
   const classes = useStyles();
 
@@ -31,7 +31,7 @@ const ActiveChat = ({
     ? conversations.find(
         (conversation) => conversation.otherUser.username === activeConversation
       )
-    : {};
+    : {};  
 
   const isConversation = (obj) => {
     return obj !== {} && obj !== undefined;
@@ -49,6 +49,7 @@ const ActiveChat = ({
             {user && (
               <>
                 <Messages
+                  conversationId={conversation.id}
                   messages={conversation.messages}
                   otherUser={conversation.otherUser}
                   userId={user.id}

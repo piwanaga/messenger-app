@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const Sequelize = require("sequelize");
 const { Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
@@ -10,7 +11,7 @@ router.post("/", async (req, res, next) => {
     }
     const senderId = req.user.id;
     const { recipientId, text, conversationId, sender } = req.body;
-
+    
     // if we already know conversation id, we can save time and just add it to message and return
     if (conversationId) {
       const message = await Message.create({ senderId, text, conversationId });
@@ -27,6 +28,7 @@ router.post("/", async (req, res, next) => {
       conversation = await Conversation.create({
         user1Id: senderId,
         user2Id: recipientId,
+        user1LastViewed: Sequelize.fn('NOW')
       });
       if (onlineUsers.includes(sender.id)) {
         sender.online = true;
