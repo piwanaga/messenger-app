@@ -32,8 +32,7 @@ const Messages = (props) => {
   useEffect(() => {
     const updateLastViewed = async () => {
       try {
-        const { data } = await axios.post('/api/conversations/viewed', {conversationId: conversationId})
-  
+        const { data } = await axios.patch('/api/conversations/viewed', {conversationId: conversationId})
         setOtherUserLastViewed(data.otherUserLastViewed)
       } catch (error) {
         console.error(error)

@@ -102,7 +102,7 @@ router.get("/", async (req, res, next) => {
 });
 
 // Update lastViewed property for logged in user
-router.post("/viewed", async (req, res, next) => {
+router.patch("/viewed", async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { conversationId } = req.body

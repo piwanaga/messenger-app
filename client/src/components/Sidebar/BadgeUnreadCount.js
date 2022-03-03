@@ -4,7 +4,9 @@ import { makeStyles } from '@material-ui/core/styles';
 const useStyles = makeStyles((theme) => ({
     root: {
       borderRadius: '16px',
-      padding: '4px 10px',
+      padding: '3px 9px',
+      fontSize: '.8rem',
+      marginRight: '1rem',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
