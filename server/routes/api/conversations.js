@@ -101,6 +101,37 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+// fetch lastViewed data for a conversation
+router.get("/viewed/:conversationId", async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { conversationId } = req.params
+
+    const conversation = await Conversation.findAll({
+      where: {
+          id: conversationId 
+      },
+    });
+
+    let otherUserLastViewed
+
+    if (conversation) {
+      if (userId === conversation[0].user1Id) {
+        otherUserLastViewed = conversation[0].user2LastViewed
+      } else if (userId === conversation[0].user2Id) {
+        otherUserLastViewed = conversation[0].user1LastViewed
+      }
+    }
+
+    
+
+    res.json({ otherUserLastViewed })
+
+  } catch (error) {
+    next(error)
+  }
+})
+
 // Update lastViewed property for logged in user
 router.patch("/viewed", async (req, res, next) => {
   try {
@@ -130,10 +161,8 @@ router.patch("/viewed", async (req, res, next) => {
         })
       }
     }
-    
-    let otherUserLastViewed = userId === conversation[0].user1Id ? conversation[0].user2LastViewed : conversation[0].user1LastViewed
 
-    res.json({ otherUserLastViewed })
+    res.json({ userId })
   } catch (error) {
     next(error)
   }

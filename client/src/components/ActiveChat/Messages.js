@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import { Box, Avatar } from '@material-ui/core';
 import { SenderBubble, OtherUserBubble } from '.';
 import moment from 'moment';
+import { SocketContext } from '../../context/socket';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -24,16 +25,35 @@ const useStyles = makeStyles(() => ({
 
 const Messages = (props) => {
   const classes = useStyles();
+  const socket = useContext(SocketContext)
 
-  const { conversationId, messages, otherUser, userId } = props;
-  const [otherUserLastViewed, setOtherUserLastViewed] = useState()
+  const { conversationId, messages, otherUser, userId, otherUserLastViewed } = props;
 
-  // Update lastViewed in db
+  const [lastMessageRead, setLastMessageRead] = useState(false)
+
+  const messageLoad = (userId, otherUser) => {
+    socket.emit("message-load", { userId, otherUser })
+  }
+
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1]
+
+    // If last message sent by logged in user, check if read
+    setLastMessageRead(lastMessage.senderId === userId && otherUserLastViewed > lastMessage.createdAt)
+
+    // if last message from other user, update read status
+    if (lastMessage.senderId === otherUser.id) {
+      messageLoad(userId, otherUser.id)
+    }
+
+  }, [otherUserLastViewed, messages, userId, otherUser.id])
+
   useEffect(() => {
     const updateLastViewed = async () => {
       try {
-        const { data } = await axios.patch('/api/conversations/viewed', {conversationId: conversationId})
-        setOtherUserLastViewed(data.otherUserLastViewed)
+        // Update lastViewed in db
+        await axios.patch('/api/conversations/viewed', {conversationId: conversationId})
+
       } catch (error) {
         console.error(error)
       }
@@ -42,16 +62,32 @@ const Messages = (props) => {
     
   }, [messages, conversationId])
 
+  // check if data is returned and if the two users returned are in the active chat
+  const checkIfMessageRead = useCallback((data) => {
+    if (data.userId && data.userId === otherUser.id && data.otherUser === userId) setLastMessageRead(true)
+  }, [userId, otherUser.id])
+
+  useEffect(() => {
+    socket.on('message-load', checkIfMessageRead);
+
+    return () => {
+      socket.off('message-load', checkIfMessageRead);
+    }
+  }, [checkIfMessageRead, socket])
+
   return (
     <Box className={classes.root}>
       {messages.map((message, idx) => {
         const time = moment(message.createdAt).format('h:mm');
 
         return message.senderId === userId ? (
-          <div key={message.id} className={classes.senderContainer}>
-            <SenderBubble text={message.text} time={time}/>
-            {idx === messages.length - 1 && otherUserLastViewed > message.createdAt && <Avatar src={otherUser.photoUrl} className={classes.avatar} /> }
-          </div>
+          <Box key={message.id} className={classes.senderContainer}>
+            <SenderBubble 
+              text={message.text} 
+              time={time} 
+            />
+            {idx === messages.length - 1 && lastMessageRead && <Avatar src={otherUser.photoUrl} className={classes.avatar} />}
+          </Box>
         ) : (
           <OtherUserBubble
             key={message.id}

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import { Box } from '@material-ui/core';
 import { Input, Header, Messages } from './index';
@@ -27,6 +28,8 @@ const ActiveChat = ({
 }) => {
   const classes = useStyles();
 
+  const [otherUserLastViewed, setOtherUserLastViewed] = useState(null)
+
   const conversation = conversations
     ? conversations.find(
         (conversation) => conversation.otherUser.username === activeConversation
@@ -36,6 +39,21 @@ const ActiveChat = ({
   const isConversation = (obj) => {
     return obj !== {} && obj !== undefined;
   };
+
+  const fetchOtherUserLastViewed = async () => {
+    try {
+      if (conversation) {
+        const { data } = await axios.get(`/api/conversations/viewed/${conversation.id}`)
+        setOtherUserLastViewed(data.otherUserLastViewed)
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
+    fetchOtherUserLastViewed()
+  }, [activeConversation])
 
   return (
     <Box className={classes.root}>
@@ -53,6 +71,7 @@ const ActiveChat = ({
                   messages={conversation.messages}
                   otherUser={conversation.otherUser}
                   userId={user.id}
+                  otherUserLastViewed={otherUserLastViewed}
                 />
                 <Input
                   otherUser={conversation.otherUser}

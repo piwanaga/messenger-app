@@ -1,5 +1,6 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles';
+import { Box } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -23,7 +24,7 @@ const BadgeUnreadCount = ({ unreadCount }) => {
     const classes = useStyles();
 
     return (
-        <div className={unreadCount > 0 ? classes.root : classes.hidden}>{unreadCount}</div>
+        <Box className={unreadCount > 0 ? classes.root : classes.hidden}>{unreadCount}</Box>
     )
 }
 
