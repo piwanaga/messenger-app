@@ -104,6 +104,10 @@ router.get("/", async (req, res, next) => {
 // fetch lastViewed data for a conversation
 router.get("/viewed/:conversationId", async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+
     const userId = req.user.id;
     const { conversationId } = req.params
 
@@ -135,6 +139,10 @@ router.get("/viewed/:conversationId", async (req, res, next) => {
 // Update lastViewed property for logged in user
 router.patch("/viewed", async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+
     const userId = req.user.id;
     const { conversationId } = req.body
 
@@ -146,6 +154,10 @@ router.patch("/viewed", async (req, res, next) => {
     });
 
     if (conversation) {
+      if (userId !== conversation[0].user1Id && userId !== conversation[0].user2Id) {
+        return res.sendStatus(401);
+      }
+
       if (userId === conversation[0].user1Id) {
         await Conversation.update({ user1LastViewed: Sequelize.fn('NOW')}, {
           where: {

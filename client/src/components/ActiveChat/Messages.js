@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import { Box, Avatar } from '@material-ui/core';
@@ -27,26 +27,20 @@ const Messages = (props) => {
   const classes = useStyles();
   const socket = useContext(SocketContext)
 
-  const { conversationId, messages, otherUser, userId, otherUserLastViewed } = props;
-
-  const [lastMessageRead, setLastMessageRead] = useState(false)
-
+  const { conversationId, messages, otherUser, userId, lastMessageReadIdx, setLastMessageReadIdx } = props;  
   const messageLoad = (userId, otherUser) => {
     socket.emit("message-load", { userId, otherUser })
   }
 
   useEffect(() => {
-    const lastMessage = messages[messages.length - 1]
-
-    // If last message sent by logged in user, check if read
-    setLastMessageRead(lastMessage.senderId === userId && otherUserLastViewed > lastMessage.createdAt)
+    const lastMessage = messages[messages.length - 1] 
 
     // if last message from other user, update read status
-    if (lastMessage.senderId === otherUser.id) {
+    if (lastMessage && lastMessage.senderId === otherUser.id) {
       messageLoad(userId, otherUser.id)
     }
 
-  }, [otherUserLastViewed, messages, userId, otherUser.id])
+  }, [messages, userId, otherUser.id])
 
   useEffect(() => {
     const updateLastViewed = async () => {
@@ -64,8 +58,11 @@ const Messages = (props) => {
 
   // check if data is returned and if the two users returned are in the active chat
   const checkIfMessageRead = useCallback((data) => {
-    if (data.userId && data.userId === otherUser.id && data.otherUser === userId) setLastMessageRead(true)
-  }, [userId, otherUser.id])
+    if (data.userId && data.userId === otherUser.id && data.otherUser === userId) {
+      setLastMessageReadIdx(messages.length - 1)
+    }
+
+  }, [userId, otherUser.id, messages.length])
 
   useEffect(() => {
     socket.on('message-load', checkIfMessageRead);
@@ -73,7 +70,7 @@ const Messages = (props) => {
     return () => {
       socket.off('message-load', checkIfMessageRead);
     }
-  }, [checkIfMessageRead, socket])
+  }, [checkIfMessageRead, socket])  
 
   return (
     <Box className={classes.root}>
@@ -86,7 +83,7 @@ const Messages = (props) => {
               text={message.text} 
               time={time} 
             />
-            {idx === messages.length - 1 && lastMessageRead && <Avatar src={otherUser.photoUrl} className={classes.avatar} />}
+            {idx === lastMessageReadIdx && <Avatar src={otherUser.photoUrl} className={classes.avatar} />}
           </Box>
         ) : (
           <OtherUserBubble

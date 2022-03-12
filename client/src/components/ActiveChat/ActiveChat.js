@@ -28,7 +28,7 @@ const ActiveChat = ({
 }) => {
   const classes = useStyles();
 
-  const [otherUserLastViewed, setOtherUserLastViewed] = useState(null)
+  const [lastMessageReadIdx, setLastMessageReadIdx] = useState(null)
 
   const conversation = conversations
     ? conversations.find(
@@ -44,7 +44,7 @@ const ActiveChat = ({
     try {
       if (conversation) {
         const { data } = await axios.get(`/api/conversations/viewed/${conversation.id}`)
-        setOtherUserLastViewed(data.otherUserLastViewed)
+        return data.otherUserLastViewed
       }
     } catch (error) {
       console.error(error)
@@ -52,7 +52,21 @@ const ActiveChat = ({
   }
 
   useEffect(() => {
-    fetchOtherUserLastViewed()
+    const findLastMessageViewed = async (messages) => {
+      const otherUserLastViewed = await fetchOtherUserLastViewed()
+
+      for (let i = messages.length - 1; i > 0; i--) {
+        if (messages[i].senderId === user.id && otherUserLastViewed > messages[i].createdAt) {
+          setLastMessageReadIdx(i)
+          break
+        }
+      }
+    }
+
+    if (conversation) {
+      findLastMessageViewed(conversation.messages)
+    }
+    
   }, [activeConversation])
 
   return (
@@ -71,7 +85,8 @@ const ActiveChat = ({
                   messages={conversation.messages}
                   otherUser={conversation.otherUser}
                   userId={user.id}
-                  otherUserLastViewed={otherUserLastViewed}
+                  lastMessageReadIdx={lastMessageReadIdx}
+                  setLastMessageReadIdx={setLastMessageReadIdx}
                 />
                 <Input
                   otherUser={conversation.otherUser}
