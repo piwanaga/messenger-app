@@ -78,7 +78,9 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  // When you create a new chat
   const addNewConvo = useCallback((recipientId, message) => {
+
       setConversations(conversations.map((convo) => {
         if (convo.otherUser.id === recipientId) {
           convo.messages = [...convo.messages, message]
@@ -95,6 +97,8 @@ const Home = ({ user, logout }) => {
   const addMessageToConversation = useCallback((data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
       const { message, sender = null } = data;
+      
+      // When you receive a new chat
       if (sender !== null) {
         const newConvo = {
           id: message.conversationId,
@@ -102,6 +106,7 @@ const Home = ({ user, logout }) => {
           messages: [message],
         };
         newConvo.latestMessageText = message.text;
+        newConvo.unreadCount = 1
         setConversations((prev) => [newConvo, ...prev]);
       }
 
@@ -109,12 +114,17 @@ const Home = ({ user, logout }) => {
         if (convo.id === message.conversationId) {
           convo.messages = [...convo.messages, message];
           convo.latestMessageText = message.text;
+
+          // If not the active conversation increment unread count
+          if (activeConversation !== convo.otherUser.username) {
+            convo.unreadCount ++
+          } 
         }
+
         return convo
       }));
-      
     },
-    [setConversations, conversations]
+    [setConversations, conversations, activeConversation]
   );
   
   // Sort messages in each conversation from oldest to newest

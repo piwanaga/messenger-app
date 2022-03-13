@@ -20,7 +20,7 @@ const useStyles = makeStyles(() => ({
   },
   sidebar: {
     marginLeft: 17,
-  },
+  }
 }));
 
 const UserAvatar = ({ sidebar, username, photoUrl, online }) => {

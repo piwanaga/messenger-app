@@ -47,6 +47,14 @@ io.on("connection", (socket) => {
     });
   });
 
+  // when new message loads, send the two users in that conversation back to client
+  socket.on("message-load", (data) => {
+    socket.broadcast.emit("message-load", {
+      userId: data.userId,
+      otherUser: data.otherUser
+    });
+  });
+
   socket.on("logout", (id) => {
     if (onlineUsers.includes(id)) {
       userIndex = onlineUsers.indexOf(id);
@@ -54,6 +62,7 @@ io.on("connection", (socket) => {
       socket.broadcast.emit("remove-offline-user", id);
     }
   });
+
 });
 
 sessionStore
